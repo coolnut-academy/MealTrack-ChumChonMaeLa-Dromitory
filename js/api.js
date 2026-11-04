@@ -42,7 +42,7 @@ const API = {
             return await this.call('verify_passcode', { passcode });
         } catch (err) {
             // Offline/Fallback authentication
-            if (passcode === "Maela1234" || passcode === "Hongson1234" || passcode === "admin" || passcode === "1234") {
+            if (passcode === "New1234" || passcode === "Maela1234" || passcode === "Hongson1234" || passcode === "admin" || passcode === "1234") {
                 return { success: true, message: "Offline fallback authenticated" };
             }
             return { success: false, message: "Passcode verification failed" };

@@ -62,7 +62,7 @@ function doGet(e) {
    AUTHENTICATION
    ========================================================================== */
 function verifyPasscode(passcode) {
-  var validPasscodes = ["Maela1234", "Hongson1234", "admin", "1234"];
+  var validPasscodes = ["New1234", "Maela1234", "Hongson1234", "admin", "1234"];
   if (validPasscodes.indexOf(passcode) !== -1) {
     return { success: true, message: "Authenticated" };
   }
