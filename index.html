@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-slate-50">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ระบบจัดเก็บข้อมูลเมนูอาหารหอพักนักเรียน - โรงเรียนชุมชนแม่ลาศึกษา</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="08_โรงเรียนชุมชนแม่ลาศึกษา.png">
+    <link rel="apple-touch-icon" href="08_โรงเรียนชุมชนแม่ลาศึกษา.png">
+
+    <!-- Tailwind CSS CDN -->
+    <script>
+        // Suppress Tailwind Play CDN warning in DevTools console
+        (function() {
+            const origWarn = console.warn;
+            console.warn = function(...args) {
+                if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+                origWarn.apply(console, args);
+            };
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // School Brand & Theme: Pearl White + Crimson Red (Cozy Education)
+                        emerald: {
+                            50: '#fff5f5',    // Soft pearl blush
+                            100: '#ffe3e3',   // Delicate rose pearl
+                            200: '#ffc9c9',   // Light ruby border
+                            300: '#ffa8a8',   // Soft ruby
+                            400: '#ff7676',   // Coral ruby
+                            500: '#ee3f3f',   // Vibrant crimson
+                            600: '#d92626',   // Rich ruby red
+                            700: '#b91c1c',   // Deep education red
+                            800: '#991b1b',   // Academic crimson
+                            850: '#841313',   // Primary brand crimson header & button
+                            900: '#6b0d0d',   // Dark burgundy
+                            950: '#480606',   // Deep velvet crimson
+                        },
+                        // Cozy Warm Pearl Neutral (Replacing cold blue-slate)
+                        slate: {
+                            50: '#fdfbf9',    // Warm pearl ivory
+                            100: '#f7f2ea',   // Cozy pearl tint
+                            200: '#ebe3d8',   // Delicate warm paper border
+                            300: '#dccebf',   // Muted pearl divider
+                            400: '#a39282',
+                            500: '#7a6a5c',   // Warm soft stone
+                            600: '#5c4e42',   // Warm charcoal
+                            700: '#42372e',   // Deep warm charcoal
+                            800: '#2c231c',   // Rich warm mocha
+                            900: '#1c1510',
+                            950: '#120d09',
+                        },
+                        pearl: {
+                            50: '#fdfbf7',
+                            100: '#faf6f0',   // Main Cozy Pearl Background
+                            200: '#f4ede2',   // Pearl container / card background
+                            300: '#ebe1d2',   // Pearl border & dividers
+                            400: '#decbba',
+                            500: '#baa38d',
+                        },
+                        gold: {
+                            300: '#fde68a',
+                            400: '#f5c358',   // Warm school emblem gold
+                            500: '#dfa233',
+                            600: '#be811e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Sarabun', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Custom Modular CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body
+    class="h-full flex flex-col bg-[#faf6f0] text-[#2c231c] antialiased selection:bg-red-700 selection:text-white">
+
+    <!-- GLOBAL SLIM TOP PROGRESS BAR (Real-time loading feedback) -->
+    <div id="topProgressBarContainer" class="fixed top-0 left-0 right-0 h-1 z-50 bg-transparent pointer-events-none opacity-0 transition-opacity duration-300">
+        <div id="topProgressBar" class="h-full bg-gradient-to-r from-gold-400 via-rose-500 to-red-600 shadow-[0_0_12px_rgba(220,38,38,0.8)] transition-all duration-300 ease-out" style="width: 0%;"></div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer"></div>
+
+    <!-- PASSCODE LOCK SCREEN MODAL -->
+    <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div
+            class="glass-panel w-full max-w-md rounded-2xl p-6 sm:p-8 shadow-2xl border border-emerald-100 text-center relative overflow-hidden animate-slide-up">
+            <div
+                class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-900 via-emerald-700 to-gold-500">
+            </div>
+
+            <img src="08_โรงเรียนชุมชนแม่ลาศึกษา.png" alt="ตราโรงเรียนชุมชนแม่ลาศึกษา"
+                class="w-20 h-20 object-contain mx-auto mb-3 filter drop-shadow-md">
+
+            <h2 class="text-xl sm:text-2xl font-bold text-emerald-850 mb-1">เข้าสู่ระบบจัดเก็บเมนูอาหารหอพักนักเรียน
+            </h2>
+            <p class="text-xs text-slate-500 mb-6">โรงเรียนชุมชนแม่ลาศึกษา</p>
+
+            <form id="authForm" onsubmit="App.handleLogin(event)" class="space-y-4">
+                <div class="relative">
+                    <input type="password" id="passcodeInput" required placeholder="กรอกรหัสผ่าน (Passcode)"
+                        class="w-full pl-4 pr-12 py-3 text-center text-base sm:text-lg tracking-widest rounded-xl border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:border-transparent bg-white shadow-sm transition">
+                    <button type="button" onclick="App.togglePasscodeVisibility()"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-700 p-2 focus:outline-none transition"
+                        title="แสดง/ซ่อนรหัสผ่าน">
+                        <i id="togglePasscodeIcon" class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+                <div id="authError"
+                    class="hidden text-red-600 text-xs font-semibold bg-red-50 py-2.5 rounded-xl border border-red-200">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง
+                </div>
+                <button type="submit" id="loginBtn"
+                    class="w-full py-3 bg-emerald-850 hover:bg-emerald-900 text-white font-semibold rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                    <span>ยืนยันเข้าสู่ระบบ</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- DEV / TEAM BADGE CARD -->
+            <div class="mt-5 w-full max-w-sm mx-auto">
+                <div class="team-badge-card p-3 sm:p-3.5 text-left transition-all cursor-default">
+                    <!-- Header Row -->
+                    <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-emerald-200/80">
+                        <div class="flex items-center gap-1.5 text-emerald-850 font-bold text-[11px] sm:text-xs tracking-wider uppercase">
+                            <svg class="w-4 h-4 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M10 2L11.5 7.5L17 9L11.5 10.5L10 16L8.5 10.5L3 9L8.5 7.5L10 2Z" />
+                                <path d="M17 14L17.8 16.8L20.5 17.5L17.8 18.2L17 21L16.2 18.2L13.5 17.5L16.2 16.8L17 14Z" />
+                            </svg>
+                            <span>ChumChonMaeLa Dormitory System Team</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-emerald-600 shrink-0">
+                            <span class="font-mono text-emerald-500 font-extrabold">&lt;/&gt;</span>
+                            <span class="text-emerald-700 font-bold">ChumChonMaeLa Dev</span>
+                        </div>
+                    </div>
+
+                    <!-- Member List -->
+                    <div class="mt-2 space-y-1.5 sm:space-y-2">
+                        <!-- Head of Dormitory -->
+                        <div class="team-badge-row px-3 sm:px-3.5 py-2 flex items-center justify-between gap-2">
+                            <span class="text-xs sm:text-[13px] font-medium text-slate-700 whitespace-nowrap">หัวหน้างานหอพักนักเรียน:</span>
+                            <span class="text-xs sm:text-[13px] font-bold text-emerald-700 text-right truncate">นางสาว ชฎาวัลย์ วิมลสกุลตรา</span>
+                        </div>
+
+                        <!-- System Developer -->
+                        <div class="team-badge-row px-3 sm:px-3.5 py-2 flex items-center justify-between gap-2">
+                            <span class="text-xs sm:text-[13px] font-medium text-slate-700 whitespace-nowrap">ผู้พัฒนาระบบ:</span>
+                            <span class="text-xs sm:text-[13px] font-bold text-emerald-700 text-right truncate">นางสาวศุทธินี ถาวร</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-[11px] text-slate-400 mt-5">ระบบบันทึกและคำนวณงบประมาณอาหารกลางวันและนักเรียนพักนอน</p>
+        </div>
+    </div>
+
+    <!-- MAIN NAVIGATION HEADER -->
+    <header class="bg-emerald-850 text-white sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+            <!-- Brand / School Title -->
+            <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <img src="08_โรงเรียนชุมชนแม่ลาศึกษา.png" alt="ตราโรงเรียนชุมชนแม่ลาศึกษา"
+                    class="w-8 h-8 sm:w-10 sm:h-10 object-contain filter drop-shadow shrink-0">
+                <div class="min-w-0">
+                    <h1 class="font-bold text-sm sm:text-base md:text-lg leading-tight truncate">ระบบลงข้อมูลเมนูอาหารหอพักนักเรียน
+                    </h1>
+                    <p class="text-[10px] sm:text-xs text-emerald-200 truncate">โรงเรียนชุมชนแม่ลาศึกษา</p>
+                </div>
+            </div>
+
+            <!-- Desktop Navigation Buttons (Visible on md and above) -->
+            <div class="hidden md:flex items-center gap-2">
+                <!-- Desktop Live Sync Status Pill -->
+                <div id="desktopSyncPill" class="hidden items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-700/60 text-xs font-medium text-emerald-200 transition">
+                    <i class="fa-solid fa-arrows-rotate animate-spin text-gold-400 text-xs"></i>
+                    <span id="desktopSyncMsg" class="truncate max-w-[160px]">กำลังโหลด...</span>
+                    <span id="desktopSyncPercent" class="font-mono font-bold text-gold-400 bg-emerald-900/90 px-1.5 py-0.5 rounded text-[11px]">0%</span>
+                </div>
+
+                <button onclick="FavoriteMenusModal.open()"
+                    class="px-3 py-2 bg-emerald-700/90 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl border border-emerald-600/50 transition flex items-center gap-2 shadow-xs"
+                    title="จัดการเมนูยอดฮิต">
+                    <i class="fa-solid fa-star text-gold-400"></i>
+                    <span>เมนูยอดฮิต</span>
+                </button>
+                <button onclick="StandardPricesModal.open()"
+                    class="px-3 py-2 bg-emerald-700/90 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl border border-emerald-600/50 transition flex items-center gap-2 shadow-xs"
+                    title="จัดการราคากลางวัตถุดิบรายเดือน">
+                    <i class="fa-solid fa-tags text-gold-400"></i>
+                    <span>ราคากลาง</span>
+                </button>
+                <button onclick="Stats.openModal('ingredients')"
+                    class="px-3 py-2 bg-emerald-700/90 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl border border-emerald-600/50 transition flex items-center gap-2 shadow-xs"
+                    title="สรุปปริมาณวัตถุดิบและเครื่องปรุงรายเดือน">
+                    <i class="fa-solid fa-boxes-stacked text-gold-400"></i>
+                    <span>สรุปวัตถุดิบ</span>
+                </button>
+                <button onclick="Stats.openModal('budget')"
+                    class="px-3 py-2 bg-emerald-700/90 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl border border-emerald-600/50 transition flex items-center gap-2 shadow-xs"
+                    title="สรุปสถิติและงบประมาณ">
+                    <i class="fa-solid fa-chart-pie text-gold-400"></i>
+                    <span>สรุปสถิติ & รายงาน</span>
+                </button>
+                <button onclick="App.handleLogout()"
+                    class="px-3 py-2 bg-emerald-950/80 hover:bg-red-800 text-emerald-200 hover:text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
+                    title="ออกจากระบบ">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>ออกจากระบบ</span>
+                </button>
+            </div>
+
+            <!-- Mobile Action Bar (Sync Button with percentage + Hamburger Button) -->
+            <div class="flex md:hidden items-center gap-1.5 shrink-0">
+                <button id="mobileSyncBtn" onclick="loadCalendarView()"
+                    class="px-2.5 py-2 bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 hover:text-white rounded-xl border border-emerald-700/60 text-xs font-semibold flex items-center gap-1.5 transition shadow-xs"
+                    title="รีเฟรชและซิงค์ข้อมูล">
+                    <i id="syncStatusIcon" class="fa-solid fa-arrows-rotate text-emerald-300"></i>
+                    <span id="syncStatusText" class="text-[11px]">ซิงค์</span>
+                    <span id="mobileSyncPercent" class="hidden font-mono font-bold text-gold-400 text-[10px] bg-emerald-950/90 px-1.5 py-0.5 rounded">0%</span>
+                </button>
+                <button id="mobileMenuBtn" onclick="UI.toggleMobileMenu()" aria-label="เมนูหลัก"
+                    class="w-10 h-10 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 text-white border border-emerald-600 flex items-center justify-center transition shadow-xs focus:outline-none focus:ring-2 focus:ring-gold-400">
+                    <i id="mobileMenuIcon" class="fa-solid fa-bars text-base"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MOBILE NAVIGATION DRAWER & BACKDROP -->
+    <div id="mobileMenuBackdrop" onclick="UI.closeMobileMenu()"
+        class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 hidden transition-opacity"></div>
+    <div id="mobileMenuDrawer"
+        class="fixed top-[52px] sm:top-[60px] left-0 right-0 max-h-[85vh] overflow-y-auto bg-emerald-950/95 backdrop-blur-md text-white border-b border-emerald-700/60 shadow-2xl z-50 p-4 rounded-b-2xl hidden flex-col gap-2.5 animate-slide-down">
+        <!-- Drawer Header / System Status -->
+        <div class="flex items-center justify-between pb-2.5 border-b border-emerald-800/80 mb-0.5">
+            <div class="flex items-center gap-2">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400" id="drawerSyncDot"></div>
+                <span class="text-xs text-emerald-200 font-medium" id="drawerSyncText">เชื่อมต่อระบบ MealTrack</span>
+            </div>
+            <span class="text-[11px] text-emerald-400/80 font-mono">v1.2</span>
+        </div>
+
+        <!-- Menu Action Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <!-- 1. Favorite Menus -->
+            <button onclick="UI.closeMobileMenu(); FavoriteMenusModal.open();"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-850 active:bg-emerald-800 border border-emerald-800/60 flex items-center gap-3 text-left transition group">
+                <div class="w-9 h-9 rounded-lg bg-gold-400/20 text-gold-400 flex items-center justify-center shrink-0 text-sm group-hover:scale-110 transition">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-white">สมุดสูตร & เมนูยอดฮิต</p>
+                    <p class="text-[10px] text-emerald-300/80 truncate">สูตรอาหารที่บันทึกไว้ในระบบ</p>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-emerald-400/60"></i>
+            </button>
+
+            <!-- 2. Standard Prices -->
+            <button onclick="UI.closeMobileMenu(); StandardPricesModal.open();"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-850 active:bg-emerald-800 border border-emerald-800/60 flex items-center gap-3 text-left transition group">
+                <div class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 text-sm group-hover:scale-110 transition">
+                    <i class="fa-solid fa-tags"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-white">ราคากลางวัตถุดิบ</p>
+                    <p class="text-[10px] text-emerald-300/80 truncate">ตรวจสอบและแก้ไขราคากลางรายเดือน</p>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-emerald-400/60"></i>
+            </button>
+
+            <!-- 3. Ingredients Summary -->
+            <button onclick="UI.closeMobileMenu(); Stats.openModal('ingredients');"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-850 active:bg-emerald-800 border border-emerald-800/60 flex items-center gap-3 text-left transition group">
+                <div class="w-9 h-9 rounded-lg bg-teal-500/20 text-teal-300 flex items-center justify-center shrink-0 text-sm group-hover:scale-110 transition">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-white">สรุปปริมาณวัตถุดิบ</p>
+                    <p class="text-[10px] text-emerald-300/80 truncate">ปริมาณข้าวสาร เนื้อสัตว์ เครื่องปรุง</p>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-emerald-400/60"></i>
+            </button>
+
+            <!-- 4. Budget & Stats -->
+            <button onclick="UI.closeMobileMenu(); Stats.openModal('budget');"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-850 active:bg-emerald-800 border border-emerald-800/60 flex items-center gap-3 text-left transition group">
+                <div class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 text-sm group-hover:scale-110 transition">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-white">รายงานสถิติ & งบประมาณ</p>
+                    <p class="text-[10px] text-emerald-300/80 truncate">สรุปยอดค่าใช้จ่ายและพิมพ์รายงาน</p>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-emerald-400/60"></i>
+            </button>
+
+            <!-- 5. Daily Meal Summary PDF -->
+            <button onclick="UI.closeMobileMenu(); DailyExport.openSelector();"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-emerald-900/80 hover:bg-emerald-850 active:bg-emerald-800 border border-gold-500/40 flex items-center gap-3 text-left transition group sm:col-span-2">
+                <div class="w-9 h-9 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center shrink-0 text-sm group-hover:scale-110 transition">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-white">สรุปอาหารรายวัน (PDF ทางการ)</p>
+                    <p class="text-[10px] text-emerald-300/80 truncate">ส่งออกรายงานสรุป 3 มื้อและวัตถุดิบฉบับทางการ</p>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-emerald-400/60"></i>
+            </button>
+        </div>
+
+        <!-- 5. Manual Sync & Refresh Button -->
+        <button onclick="UI.closeMobileMenu(); loadCalendarView();"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-emerald-900/40 hover:bg-emerald-850 active:bg-emerald-800 border border-emerald-800/40 flex items-center justify-between text-left transition">
+            <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-arrows-rotate text-emerald-300 text-sm ml-1"></i>
+                <span class="text-xs font-semibold text-emerald-100">รีเฟรช / ซิงค์ข้อมูลล่าสุดจากเซิร์ฟเวอร์</span>
+            </div>
+            <i class="fa-solid fa-arrow-rotate-right text-xs text-emerald-400/80"></i>
+        </button>
+
+        <!-- 6. Logout Button -->
+        <button onclick="UI.closeMobileMenu(); App.handleLogout();"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-red-950/70 hover:bg-red-900/90 active:bg-red-950 text-red-200 hover:text-white border border-red-800/50 flex items-center justify-center gap-2 text-xs font-bold transition">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>ออกจากระบบ (Logout)</span>
+        </button>
+
+        <!-- Developer Info Footer -->
+        <div class="pt-2 border-t border-emerald-800/60 text-center">
+            <p class="text-[10px] text-emerald-400/70">ผู้พัฒนา: นางสาวศุทธินี ถาวร • โรงเรียนชุมชนแม่ลาศึกษา</p>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col gap-4">
+
+        <!-- CALENDAR HEADER & MONTH NAVIGATOR BAR -->
+        <div
+            class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-850 flex items-center justify-center font-bold text-lg border border-emerald-100 shadow-xs">
+                    <i class="fa-regular fa-calendar-days"></i>
+                </div>
+                <div>
+                    <h2 id="calendarMonthTitle" class="text-lg sm:text-xl font-bold text-slate-800">พฤษภาคม 2569</h2>
+                    <p class="text-xs text-slate-500 hidden sm:block">คลิกที่ช่องวันที่เพื่อกรอกหรือแก้ไขรายการอาหาร</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Single Daily PDF Export Button (Visible on Calendar Overview Page) -->
+                <button onclick="DailyExport.openSelector()"
+                    class="px-3.5 py-2 bg-emerald-850 hover:bg-emerald-900 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 border border-emerald-700/60"
+                    title="พิมพ์หรือส่งออกสรุปรายการอาหารทุกมื้อประจำวัน (PDF ฉบับทางการ)">
+                    <i class="fa-solid fa-file-pdf text-gold-400"></i>
+                    <span>สรุปอาหารรายวัน (PDF)</span>
+                </button>
+
+                <!-- Mobile View Switcher (Grid vs Agenda) -->
+                <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 md:hidden">
+                    <button id="btnMobileViewGrid" onclick="UI.setMobileView('grid')"
+                        class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white text-emerald-850 shadow-xs transition"
+                        title="มุมมองปฏิทิน">
+                        <i class="fa-solid fa-table-cells"></i>
+                    </button>
+                    <button id="btnMobileViewAgenda" onclick="UI.setMobileView('agenda')"
+                        class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-500 transition"
+                        title="มุมมองรายการ">
+                        <i class="fa-solid fa-list-ul"></i>
+                    </button>
+                </div>
+
+                <!-- Month Nav Buttons -->
+                <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <button onclick="changeMonth(-1)"
+                        class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white text-slate-700 shadow-xs transition"
+                        title="เดือนก่อนหน้า">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                    </button>
+                    <button onclick="resetToCurrentMonth()"
+                        class="px-2.5 py-1.5 text-xs font-bold text-emerald-850 hover:bg-white rounded-lg transition">
+                        ปัจจุบัน
+                    </button>
+                    <button onclick="changeMonth(1)"
+                        class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white text-slate-700 shadow-xs transition"
+                        title="เดือนถัดไป">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRID VIEW CONTAINER (Desktop / Tablet / Mobile Grid) -->
+        <div id="calendarGridContainer"
+            class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex-1 flex flex-col">
+            <!-- Days of Week Header -->
+            <div
+                class="grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-center py-2.5 text-xs font-bold text-slate-600">
+                <div class="text-red-600">อา.</div>
+                <div>จ.</div>
+                <div>อ.</div>
+                <div>พ.</div>
+                <div>พฤ.</div>
+                <div>ศ.</div>
+                <div class="text-emerald-700">ส.</div>
+            </div>
+
+            <!-- Calendar Days Cells -->
+            <div id="calendarGrid"
+                class="grid grid-cols-7 flex-1 auto-rows-fr gap-px bg-slate-200 min-h-[420px] sm:min-h-[520px]">
+                <!-- Dynamic Day Boxes Generated via JavaScript -->
+            </div>
+        </div>
+
+        <!-- AGENDA LIST VIEW CONTAINER (Mobile Optimized View) -->
+        <div id="agendaViewContainer" class="hidden space-y-3">
+            <div id="agendaList" class="space-y-2.5">
+                <!-- Mobile Day Agenda Cards -->
+            </div>
+        </div>
+    </main>
+
+    <!-- MEAL ENTRY & EDIT POPUP MODAL -->
+    <div id="mealModal"
+        class="fixed inset-0 z-40 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        <div
+            class="glass-panel w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
+            <!-- Modal Header -->
+            <div class="bg-emerald-850 text-white px-5 sm:px-6 py-4 flex items-center justify-between">
+                <div>
+                    <h3 id="modalDateTitle" class="font-bold text-base sm:text-lg">รายการอาหารประจำวัน</h3>
+                    <p class="text-xs text-emerald-200">จัดการเมนูและรายการวัตถุดิบแยกตามมื้อ</p>
+                </div>
+                <button onclick="MealModal.close()"
+                    class="w-8 h-8 rounded-full bg-emerald-950/60 hover:bg-emerald-950 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Meal Type Tabs -->
+            <div class="flex border-b border-slate-200 bg-slate-50 px-4 sm:px-6 pt-3 gap-1 sm:gap-2 overflow-x-auto">
+                <button type="button" onclick="MealModal.switchMealTab('มื้อเช้า')" id="tab-มื้อเช้า"
+                    class="meal-tab px-3.5 py-2 text-xs sm:text-sm font-bold rounded-t-xl border-b-2 border-emerald-850 text-emerald-850 bg-white transition flex items-center gap-1.5 whitespace-nowrap">
+                    <span>🌅 มื้อเช้า</span>
+                </button>
+                <button type="button" onclick="MealModal.switchMealTab('มื้อเที่ยง')" id="tab-มื้อเที่ยง"
+                    class="meal-tab px-3.5 py-2 text-xs sm:text-sm font-bold rounded-t-xl border-b-2 border-transparent text-slate-500 hover:text-emerald-850 transition flex items-center gap-1.5 whitespace-nowrap">
+                    <span>☀️ มื้อเที่ยง</span>
+                </button>
+                <button type="button" onclick="MealModal.switchMealTab('มื้อเย็น')" id="tab-มื้อเย็น"
+                    class="meal-tab px-3.5 py-2 text-xs sm:text-sm font-bold rounded-t-xl border-b-2 border-transparent text-slate-500 hover:text-emerald-850 transition flex items-center gap-1.5 whitespace-nowrap">
+                    <span>🌙 มื้อเย็น</span>
+                </button>
+            </div>
+
+            <!-- Modal Form Body -->
+            <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4 sm:space-y-5">
+                <div>
+                    <label
+                        class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">ชื่อเมนูอาหาร (พิมพ์เพื่อค้นหาจากเมนูยอดฮิต)</label>
+                    <div class="relative">
+                        <input type="text" id="menuNameInput" 
+                            oninput="MealModal.handleMenuNameInput(this)"
+                            onfocus="MealModal.handleMenuNameInput(this)"
+                            onblur="setTimeout(() => MealModal.closeMenuAutocomplete(), 200)"
+                            placeholder="เช่น แกงเผ็ดลูกชิ้น, ต้มยำไก่, ผัดผักรวม (พิมพ์อักษรเพื่อเลือกเมนูที่เคยบันทึก)"
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50/50 text-sm font-medium transition">
+                        <div id="menuNameAutocompleteDropdown" class="autocomplete-dropdown hidden"></div>
+                    </div>
+                </div>
+
+                <!-- Items Table -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label
+                            class="block text-xs font-bold text-slate-700 uppercase tracking-wider">รายการวัตถุดิบที่ใช้</label>
+                        <button type="button" onclick="MealModal.addIngredientRow()"
+                            class="px-3 py-1.5 bg-emerald-50 text-emerald-850 hover:bg-emerald-100 text-xs font-bold rounded-lg border border-emerald-200 transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-xs"></i> เพิ่มรายการ
+                        </button>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-xl shadow-xs relative">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm min-w-[500px]">
+                            <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                                <tr>
+                                    <th class="py-2.5 px-3 w-10 text-center">ที่</th>
+                                    <th class="py-2.5 px-3">รายการ (พิมพ์เพื่อค้นหาราคากลาง)</th>
+                                    <th class="py-2.5 px-3 w-20 text-center">จำนวน</th>
+                                    <th class="py-2.5 px-3 w-24 text-center">หน่วยละ (฿)</th>
+                                    <th class="py-2.5 px-3 w-24 text-right">รวมเป็นเงิน</th>
+                                    <th class="py-2.5 px-2 w-10 text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="ingredientsTableBody" class="divide-y divide-slate-100 bg-white">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                            <tfoot class="bg-emerald-50/70 font-bold text-slate-800 border-t border-slate-200">
+                                <tr>
+                                    <td colspan="4" class="py-3 px-4 text-right">รวมเป็นเงินมื้อนี้:</td>
+                                    <td id="mealTotalCostDisplay"
+                                        class="py-3 px-3 text-right text-emerald-850 font-bold text-sm sm:text-base">
+                                        0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div
+                class="bg-slate-100 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200">
+                <button type="button" onclick="MealModal.deleteRecord()"
+                    class="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-semibold transition flex items-center gap-1">
+                    <i class="fa-solid fa-trash-can"></i> <span>ลบข้อมูลมื้อนี้</span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="DailyExport.previewCurrentDatePDF()"
+                        class="px-3.5 py-2 bg-emerald-850 hover:bg-emerald-900 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 border border-emerald-700/60"
+                        title="ดูตัวอย่างหรือสั่งพิมพ์เอกสารรายงานสรุปอาหารประจำวันนี้ (PDF ฉบับทางการ)">
+                        <i class="fa-solid fa-file-pdf text-gold-400"></i>
+                        <span>สรุปอาหารรายวัน (PDF)</span>
+                    </button>
+                    <button type="button" onclick="MealModal.close()"
+                        class="px-4 py-2 bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold transition">
+                        ยกเลิก
+                    </button>
+                    <button type="button" onclick="MealModal.saveRecord()"
+                        class="px-5 py-2 bg-emerald-850 hover:bg-emerald-900 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> <span>บันทึกข้อมูล</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STANDARD PRICES MANAGEMENT MODAL -->
+    <div id="standardPricesModal"
+        class="fixed inset-0 z-40 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        <div
+            class="glass-panel w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
+            <!-- Modal Header -->
+            <div class="bg-emerald-850 text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-tags text-gold-400 text-xl"></i>
+                    <div>
+                        <h3 id="stdPricesTitle" class="font-bold text-base sm:text-lg">ราคากลางวัตถุดิบ</h3>
+                        <p class="text-xs text-emerald-200">จัดการและตั้งค่าราคากลางวัตถุดิบรายเดือน</p>
+                    </div>
+                </div>
+                <button onclick="StandardPricesModal.close()"
+                    class="w-8 h-8 rounded-full bg-emerald-950/60 hover:bg-emerald-950 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Month Selector & Search Filter Bar -->
+            <div
+                class="bg-slate-100 p-3 sm:p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                <div class="flex items-center gap-2">
+                    <label class="text-xs font-bold text-slate-700 whitespace-nowrap"><i
+                            class="fa-regular fa-calendar text-emerald-700 mr-1"></i> เลือกรอบเดือน:</label>
+                    <select id="stdPricesMonthSelect"
+                        onchange="const [y, m] = this.value.split('-'); StandardPricesModal.changeMonth(y, m);"
+                        class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-700 focus:outline-none shadow-xs">
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2 flex-1 max-w-xs">
+                    <div class="relative w-full">
+                        <input type="text" placeholder="ค้นหาวัตถุดิบ..."
+                            oninput="StandardPricesModal.setSearchFilter(this.value)"
+                            class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs focus:ring-2 focus:ring-emerald-700 focus:outline-none shadow-xs">
+                        <i
+                            class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Filter Tabs -->
+            <div id="stdPricesCategoryNav"
+                class="flex items-center border-b border-slate-200 bg-slate-50 px-4 sm:px-6 py-2.5 gap-2 overflow-x-auto shrink-0">
+                <!-- Category Tab Buttons Rendered via JS -->
+            </div>
+
+            <!-- Items Table Body -->
+            <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
+                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="py-2.5 px-3 w-10 text-center">ที่</th>
+                                <th class="py-2.5 px-3 w-40">หมวดหมู่</th>
+                                <th class="py-2.5 px-3">รายการวัตถุดิบ</th>
+                                <th class="py-2.5 px-3 w-28 text-center">หน่วยนับ</th>
+                                <th class="py-2.5 px-3 w-32 text-right">ราคากลาง (บาท)</th>
+                                <th class="py-2.5 px-2 w-10 text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="stdPricesTableBody" class="divide-y divide-slate-100">
+                            <!-- Rows Rendered via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div
+                class="bg-slate-100 px-4 sm:px-6 py-3.5 flex items-center justify-between border-t border-slate-200 shrink-0">
+                <button type="button" onclick="StandardPricesModal.openAddItemModal()"
+                    class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-850 border border-emerald-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus text-xs"></i> <span>เพิ่มวัตถุดิบใหม่</span>
+                </button>
+                <button type="button" onclick="StandardPricesModal.close()"
+                    class="px-5 py-2 bg-emerald-850 hover:bg-emerald-900 text-white rounded-xl text-xs font-semibold shadow-md transition">
+                    ตกลง / ปิดหน้าต่าง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD STANDARD PRICE ITEM MODAL -->
+    <div id="addStandardItemModal"
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 modal-backdrop overflow-y-auto">
+        <div
+            class="glass-panel w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col animate-slide-up">
+            <!-- Modal Header -->
+            <div class="bg-emerald-850 text-white px-5 sm:px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-circle-plus text-gold-400 text-xl"></i>
+                    <div>
+                        <h3 class="font-bold text-base sm:text-lg">เพิ่มวัตถุดิบใหม่เข้าราคากลาง</h3>
+                        <p class="text-xs text-emerald-200">ระบุรายละเอียดวัตถุดิบเพื่อใช้งานในระบบ</p>
+                    </div>
+                </div>
+                <button type="button" onclick="StandardPricesModal.closeAddItemModal()"
+                    class="w-8 h-8 rounded-full bg-emerald-950/60 hover:bg-emerald-950 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Form Body -->
+            <form onsubmit="StandardPricesModal.saveNewItemFromModal(event)" class="p-5 sm:p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">หมวดหมู่</label>
+                    <select id="addItemCategorySelect" required
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-700 focus:outline-none shadow-xs">
+                    </select>
+                </div>
+
+                <div>
+                    <label
+                        class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">ชื่อวัตถุดิบ</label>
+                    <input type="text" id="addItemNameInput" required placeholder="เช่น ไก่สด, ผักคะน้า, น้ำมันหอย"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-2 focus:ring-emerald-700 focus:outline-none transition">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">หน่วยนับ</label>
+                        <input type="text" id="addItemUnitInput" required placeholder="เช่น กิโลกรัม, ขวด, มัด"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-2 focus:ring-emerald-700 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">ราคากลางต่อหน่วย
+                            (บาท)</label>
+                        <input type="number" step="any" min="0" id="addItemPriceInput" required placeholder="0.00"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50/30 text-xs font-bold text-emerald-850 focus:ring-2 focus:ring-emerald-700 focus:outline-none transition text-right">
+                    </div>
+                </div>
+
+                <!-- Footer Action Buttons -->
+                <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="StandardPricesModal.closeAddItemModal()"
+                        class="px-4 py-2 bg-white text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-100 transition">
+                        ยกเลิก
+                    </button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-emerald-850 hover:bg-emerald-900 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> <span>บันทึกวัตถุดิบ</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- STATISTICS & REPORT MODAL -->
+    <div id="statsModal"
+        class="fixed inset-0 z-40 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        <div
+            class="glass-panel w-full max-w-5xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
+            <!-- Modal Header -->
+            <div class="bg-emerald-850 text-white px-5 sm:px-6 py-4 flex items-center justify-between no-print">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-chart-line text-gold-400 text-xl"></i>
+                    <div>
+                        <h3 class="font-bold text-base sm:text-lg">รายงานและสถิติข้อมูลอาหาร</h3>
+                        <p class="text-xs text-emerald-200">สรุปงบประมาณค่าใช้จ่าย และปริมาณวัตถุดิบประกอบอาหารที่ใช้จริง</p>
+                    </div>
+                </div>
+                <button onclick="Stats.closeModal()"
+                    class="w-8 h-8 rounded-full bg-emerald-950/60 hover:bg-emerald-950 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- View Tab Switcher & Date Filter Bar -->
+            <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 no-print">
+                <!-- Mode View Tabs -->
+                <div class="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-xs">
+                    <button id="stats-tab-budget" onclick="Stats.switchTab('budget')"
+                        class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 bg-emerald-850 text-white shadow-xs">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>สรุปงบประมาณค่าใช้จ่าย</span>
+                    </button>
+                    <button id="stats-tab-ingredients" onclick="Stats.switchTab('ingredients')"
+                        class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 hover:bg-slate-100 text-slate-600">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <span>สรุปปริมาณวัตถุดิบ & เครื่องปรุง</span>
+                    </button>
+                </div>
+
+                <!-- Date Range Quick Select & Custom Inputs -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200">
+                        <button id="filter-btn-today" onclick="Stats.setFilterRange('today')"
+                            class="filter-btn px-2.5 py-1 text-xs font-medium rounded-lg hover:bg-slate-100 transition">วันนี้</button>
+                        <button id="filter-btn-week" onclick="Stats.setFilterRange('week')"
+                            class="filter-btn px-2.5 py-1 text-xs font-medium rounded-lg hover:bg-slate-100 transition">สัปดาห์นี้</button>
+                        <button id="filter-btn-month" onclick="Stats.setFilterRange('month')"
+                            class="filter-btn px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-850 text-white transition">เดือนนี้</button>
+                        <button id="filter-btn-year" onclick="Stats.setFilterRange('year')"
+                            class="filter-btn px-2.5 py-1 text-xs font-medium rounded-lg hover:bg-slate-100 transition">ปีนี้</button>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 text-xs">
+                        <input type="date" id="statsStartDate" onchange="calculateAndRenderStats()"
+                            class="px-2.5 py-1 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-700">
+                        <span class="text-slate-400">ถึง</span>
+                        <input type="date" id="statsEndDate" onchange="calculateAndRenderStats()"
+                            class="px-2.5 py-1 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-700">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Printable Report Area -->
+            <div id="printReportArea" class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-6 print-container">
+                <!-- Report Header (Print Ready) -->
+                <div class="text-center pb-4 border-b border-slate-200 flex flex-col items-center">
+                    <img src="08_โรงเรียนชุมชนแม่ลาศึกษา.png" alt="ตราโรงเรียนชุมชนแม่ลาศึกษา" class="w-16 h-16 object-contain mb-2">
+                    <h2 class="font-bold text-lg sm:text-xl text-emerald-850">รายงานสรุปการใช้วัตถุดิบและเครื่องปรุงประกอบอาหาร</h2>
+                    <p class="text-xs text-slate-600">โรงเรียนชุมชนแม่ลาศึกษา อำเภอแม่ลาน้อย จังหวัดแม่ฮ่องสอน</p>
+                    <p id="reportRangeLabel" class="text-xs font-semibold text-emerald-700 mt-1">ประจำช่วงวันที่ ...</p>
+                </div>
+
+                <!-- SECTION 1: BUDGET STATS -->
+                <div id="statsBudgetSection" class="space-y-6">
+                    <!-- Cards Summary Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center shadow-xs">
+                            <p class="text-xs font-bold text-slate-500 uppercase">ค่าวัตถุดิบใช้จริงรวม</p>
+                            <p id="statTotalSpent" class="text-xl sm:text-2xl font-bold text-emerald-850 my-1">0.00</p>
+                            <p class="text-[11px] text-slate-500">บาท</p>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center shadow-xs">
+                            <p class="text-xs font-bold text-slate-500 uppercase">จำนวนวันที่บันทึก</p>
+                            <p id="statDaysCount" class="text-xl sm:text-2xl font-bold text-slate-800 my-1">0</p>
+                            <p class="text-[11px] text-slate-500">วัน</p>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center shadow-xs">
+                            <p class="text-xs font-bold text-slate-500 uppercase">งบประมาณประมาณการจัดสรร</p>
+                            <p id="statAllocatedBudget" class="text-xl sm:text-2xl font-bold text-gold-600 my-1">0.00</p>
+                            <p class="text-[11px] text-slate-500">บาท (ตามเกณฑ์อัตราหัวละ)</p>
+                        </div>
+                    </div>
+
+                    <!-- Breakdown by Meal -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
+                        <h4 class="font-bold text-xs sm:text-sm text-slate-800 mb-3 border-b border-slate-100 pb-2">
+                            <i class="fa-solid fa-utensils text-emerald-700 mr-1.5"></i>
+                            สรุปสัดส่วนค่าใช้จ่ายแยกตามมื้ออาหาร
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-center text-xs">
+                            <div class="p-3 rounded-xl bg-orange-50 border border-orange-100">
+                                <span class="text-orange-800 font-bold">🌅 มื้อเช้า</span>
+                                <p id="statBreakfastSpent" class="font-bold text-sm text-slate-800 mt-1">0.00 บาท</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+                                <span class="text-emerald-800 font-bold">☀️ มื้อเที่ยง</span>
+                                <p id="statLunchSpent" class="font-bold text-sm text-slate-800 mt-1">0.00 บาท</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-100">
+                                <span class="text-indigo-800 font-bold">🌙 มื้อเย็น</span>
+                                <p id="statDinnerSpent" class="font-bold text-sm text-slate-800 mt-1">0.00 บาท</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: INGREDIENT CONSUMPTION STATS -->
+                <div id="statsIngredientsSection" class="space-y-6 hidden">
+                    <!-- Key Highlight Metric Cards (Rice, Pork, Chicken, Seasonings) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                        <!-- Rice Card -->
+                        <div class="bg-gradient-to-br from-amber-50 to-orange-50/60 p-4 rounded-xl border border-amber-200/80 shadow-xs relative overflow-hidden">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                                    <span class="text-base">🌾</span> ข้าวสารใช้รวม
+                                </span>
+                                <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">อาหารหลัก</span>
+                            </div>
+                            <p class="text-2xl font-black text-amber-950 tracking-tight my-0.5">
+                                <span id="statRiceKg">0.00</span> <span class="text-sm font-bold text-amber-800">กก.</span>
+                            </p>
+                            <p class="text-[11px] text-amber-700/80">
+                                ประมาณ <strong id="statRiceBags" class="text-amber-900">0.0</strong> กระสอบ (45 กก.)
+                            </p>
+                        </div>
+
+                        <!-- Pork Group Card -->
+                        <div class="bg-gradient-to-br from-rose-50 to-red-50/60 p-4 rounded-xl border border-rose-200/80 shadow-xs relative overflow-hidden">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-rose-900 flex items-center gap-1.5">
+                                    <span class="text-base">🐖</span> กลุ่มเนื้อหมูรวม
+                                </span>
+                                <span class="text-[10px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-semibold">หมูบด/สับ/สด</span>
+                            </div>
+                            <p class="text-2xl font-black text-rose-950 tracking-tight my-0.5">
+                                <span id="statPorkKg">0.00</span> <span class="text-sm font-bold text-rose-800">กก.</span>
+                            </p>
+                            <p class="text-[11px] text-rose-700/80">
+                                มูลค่ารวม <strong id="statPorkCost" class="text-rose-900">0.00</strong> บาท
+                            </p>
+                        </div>
+
+                        <!-- Chicken Group Card -->
+                        <div class="bg-gradient-to-br from-orange-50 to-amber-50/60 p-4 rounded-xl border border-orange-200/80 shadow-xs relative overflow-hidden">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-orange-900 flex items-center gap-1.5">
+                                    <span class="text-base">🐓</span> กลุ่มเนื้อไก่รวม
+                                </span>
+                                <span class="text-[10px] bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-semibold">ไก่บด/สับ/ชิ้น</span>
+                            </div>
+                            <p class="text-2xl font-black text-orange-950 tracking-tight my-0.5">
+                                <span id="statChickenKg">0.00</span> <span class="text-sm font-bold text-orange-800">กก.</span>
+                            </p>
+                            <p class="text-[11px] text-orange-700/80">
+                                มูลค่ารวม <strong id="statChickenCost" class="text-orange-900">0.00</strong> บาท
+                            </p>
+                        </div>
+
+                        <!-- Seasonings & Dry Goods Card -->
+                        <div class="bg-gradient-to-br from-teal-50 to-emerald-50/60 p-4 rounded-xl border border-teal-200/80 shadow-xs relative overflow-hidden">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-teal-900 flex items-center gap-1.5">
+                                    <span class="text-base">🧂</span> เครื่องปรุง/อาหารแห้ง
+                                </span>
+                                <span class="text-[10px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full font-semibold">รวมทุกประเภท</span>
+                            </div>
+                            <p class="text-2xl font-black text-teal-950 tracking-tight my-0.5">
+                                <span id="statSeasoningTypesCount">0</span> <span class="text-sm font-bold text-teal-800">รายการ</span>
+                            </p>
+                            <p class="text-[11px] text-teal-700/80">
+                                รวมเป็นเงิน <strong id="statSeasoningCost" class="text-teal-900">0.00</strong> บาท
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Filter & Search Bar for Ingredients Table -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-xs flex flex-wrap items-center justify-between gap-3 no-print">
+                        <!-- Category Filter Tabs -->
+                        <div class="flex flex-wrap items-center gap-1 text-xs">
+                            <button onclick="Stats.filterIngredientsCategory('ทั้งหมด')" id="ing-cat-all"
+                                class="ing-cat-btn px-3 py-1.5 font-bold rounded-lg bg-emerald-850 text-white transition">
+                                ทั้งหมด
+                            </button>
+                            <button onclick="Stats.filterIngredientsCategory('ข้าวสาร & เนื้อสัตว์')" id="ing-cat-meat"
+                                class="ing-cat-btn px-3 py-1.5 font-semibold rounded-lg text-slate-600 hover:bg-slate-100 transition">
+                                🌾 ข้าวสาร & เนื้อสัตว์
+                            </button>
+                            <button onclick="Stats.filterIngredientsCategory('อาหารแห้ง/เครื่องปรุง')" id="ing-cat-seasoning"
+                                class="ing-cat-btn px-3 py-1.5 font-semibold rounded-lg text-slate-600 hover:bg-slate-100 transition">
+                                🧂 เครื่องปรุง & อาหารแห้ง
+                            </button>
+                            <button onclick="Stats.filterIngredientsCategory('ผักสดและผลไม้')" id="ing-cat-vege"
+                                class="ing-cat-btn px-3 py-1.5 font-semibold rounded-lg text-slate-600 hover:bg-slate-100 transition">
+                                🥬 ผัก & ผลไม้
+                            </button>
+                            <button onclick="Stats.filterIngredientsCategory('แก๊สหุงต้ม')" id="ing-cat-gas"
+                                class="ing-cat-btn px-3 py-1.5 font-semibold rounded-lg text-slate-600 hover:bg-slate-100 transition">
+                                🔥 แก๊สหุงต้ม
+                            </button>
+                        </div>
+
+                        <!-- Search Input -->
+                        <div class="relative min-w-[200px] flex-1 sm:flex-none">
+                            <input type="text" id="statsIngredientSearch" oninput="Stats.renderIngredientTable()"
+                                placeholder="ค้นหาวัตถุดิบ..."
+                                class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-700 focus:outline-none transition">
+                            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Ingredients Consumption Table -->
+                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                        <div class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                            <h4 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-emerald-700"></i>
+                                สรุปปริมาณวัตถุดิบและเครื่องปรุงที่ใช้สะสมรายรายการ
+                            </h4>
+                            <span id="ingredientRowCountBadge" class="text-xs font-semibold text-slate-500 bg-slate-200/70 px-2 py-0.5 rounded-full">
+                                0 รายการ
+                            </span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead class="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
+                                    <tr>
+                                        <th class="py-2.5 px-3 text-center w-12">#</th>
+                                        <th class="py-2.5 px-4">ชื่อวัตถุดิบ / เครื่องปรุง</th>
+                                        <th class="py-2.5 px-3 text-center">หมวดหมู่</th>
+                                        <th class="py-2.5 px-3 text-right">ปริมาณรวมที่ใช้</th>
+                                        <th class="py-2.5 px-3 text-center">หน่วยนับ</th>
+                                        <th class="py-2.5 px-4 text-right">รวมเป็นเงิน (บาท)</th>
+                                        <th class="py-2.5 px-3 text-right">% ของงบวัตถุดิบ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ingredientStatsTableBody" class="divide-y divide-slate-100 font-medium">
+                                    <tr>
+                                        <td colspan="7" class="py-8 text-center text-slate-400">
+                                            <i class="fa-solid fa-spinner fa-spin text-lg mb-2"></i>
+                                            <p>กำลังคำนวณข้อมูลวัตถุดิบ...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot id="ingredientStatsTableFooter" class="bg-slate-100/90 font-bold text-slate-800 border-t border-slate-200">
+                                    <tr>
+                                        <td colspan="3" class="py-3 px-4 text-right">รวมทั้งสิ้นทุกรายการ:</td>
+                                        <td id="statTotalIngQtySum" class="py-3 px-3 text-right text-emerald-850">0</td>
+                                        <td class="py-3 px-3 text-center text-slate-500">-</td>
+                                        <td id="statTotalIngCostSum" class="py-3 px-4 text-right text-emerald-850 text-sm">0.00 บาท</td>
+                                        <td class="py-3 px-3 text-right text-slate-600">100%</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer & Enhanced Export Bar -->
+            <div class="bg-slate-100 px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 no-print">
+                <button type="button" onclick="Stats.closeModal()"
+                    class="px-4 py-2.5 bg-white text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-200 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-xmark"></i> <span>ปิดหน้าต่าง</span>
+                </button>
+                <div class="flex items-center gap-2.5">
+                    <button type="button" onclick="Stats.exportToCSV()"
+                        class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-850 border border-emerald-300 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-file-excel text-emerald-700 text-sm"></i>
+                        <span>Export ข้อมูล (CSV / Excel)</span>
+                    </button>
+                    <button type="button" onclick="Stats.printReport()"
+                        class="px-4.5 py-2.5 bg-emerald-850 hover:bg-emerald-900 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-print text-gold-400 text-sm"></i>
+                        <span>พิมพ์รายงาน PDF (A4)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPULAR / FAVORITE MENUS MANAGEMENT MODAL -->
+    <div id="favoriteMenusModal"
+        class="fixed inset-0 z-40 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        <div
+            class="glass-panel w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
+            <!-- Modal Header -->
+            <div class="bg-emerald-850 text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-star text-gold-400 text-xl"></i>
+                    <div>
+                        <h3 class="font-bold text-base sm:text-lg">สมุดสูตรอาหาร & เมนูยอดฮิต</h3>
+                        <p class="text-xs text-emerald-200">จัดการ เพิ่ม ลบ ปรับแต่ง สูตรอาหารที่ถูกจดจำในระบบ</p>
+                    </div>
+                </div>
+                <button onclick="FavoriteMenusModal.close()"
+                    class="w-8 h-8 rounded-full bg-emerald-950/60 hover:bg-emerald-950 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Search Bar & Actions -->
+            <div class="bg-slate-100 p-3 sm:p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                <div class="flex items-center gap-2 flex-1 max-w-md">
+                    <div class="relative w-full">
+                        <input type="text" id="favMenuSearchInput" placeholder="ค้นหาเมนูยอดฮิต..."
+                            oninput="FavoriteMenusModal.setSearchFilter(this.value)"
+                            class="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-medium focus:ring-2 focus:ring-emerald-700 focus:outline-none shadow-xs">
+                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span id="favMenuTotalCountBadge" class="text-xs font-bold text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs">
+                        0 รายการ
+                    </span>
+                    <button type="button" onclick="FavoriteMenusModal.openAddModal()"
+                        class="px-3.5 py-2 bg-emerald-850 hover:bg-emerald-900 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> <span>เพิ่มสูตรเมนูใหม่</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Area: List of Favorite Menus -->
+            <div id="favMenuListContainer" class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-3 bg-slate-50/50">
+                <!-- Dynamic Menu Cards Rendered via JS -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-100 px-4 sm:px-6 py-3.5 flex items-center justify-end border-t border-slate-200 shrink-0">
+                <button type="button" onclick="FavoriteMenusModal.close()"
+                    class="px-5 py-2 bg-emerald-850 hover:bg-emerald-900 text-white rounded-xl text-xs font-semibold shadow-md transition">
+                    ปิดหน้าต่าง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD/EDIT FAVORITE MENU FORM MODAL -->
+    <div id="favMenuFormModal"
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        <div
+            class="glass-panel w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
+            <!-- Modal Header -->
+            <div class="bg-emerald-850 text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-pen-to-square text-gold-400 text-xl"></i>
+                    <div>
+                        <h3 id="favMenuFormTitle" class="font-bold text-base sm:text-lg">เพิ่ม/แก้ไข สูตรเมนูยอดฮิต</h3>
+                        <p class="text-xs text-emerald-200">ระบุชื่อเมนูและส่วนประกอบพร้อมปริมาณมาตรฐาน</p>
+                    </div>
+                </div>
+                <button type="button" onclick="FavoriteMenusModal.closeFormModal()"
+                    class="w-8 h-8 rounded-full bg-emerald-950/60 hover:bg-emerald-950 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Form Body -->
+            <form onsubmit="FavoriteMenusModal.saveFormMenu(event)" class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">ชื่อเมนูอาหาร</label>
+                    <input type="text" id="favMenuFormNameInput" required placeholder="เช่น ผัดกระเพราหมูสับ, ต้มยำกุ้ง"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-emerald-700 focus:outline-none transition">
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">ส่วนประกอบวัตถุดิบและปริมาณ</label>
+                        <button type="button" onclick="FavoriteMenusModal.addFormItemRow()"
+                            class="px-3 py-1 bg-emerald-50 text-emerald-850 hover:bg-emerald-100 text-xs font-bold rounded-lg border border-emerald-200 transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-xs"></i> เพิ่มรายการ
+                        </button>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                                <tr>
+                                    <th class="py-2 px-3 w-8 text-center">#</th>
+                                    <th class="py-2 px-3">ชื่อวัตถุดิบ</th>
+                                    <th class="py-2 px-3 w-20 text-center">จำนวน</th>
+                                    <th class="py-2 px-3 w-24 text-center">หน่วยละ (฿)</th>
+                                    <th class="py-2 px-3 w-24 text-right">รวมเงิน</th>
+                                    <th class="py-2 px-2 w-8 text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="favMenuFormItemsTableBody" class="divide-y divide-slate-100">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                            <tfoot class="bg-emerald-50/70 font-bold text-slate-800 border-t border-slate-200">
+                                <tr>
+                                    <td colspan="4" class="py-2.5 px-4 text-right">รวมเป็นเงินโดยประมาณ:</td>
+                                    <td id="favMenuFormTotalCostDisplay" class="py-2.5 px-3 text-right text-emerald-850 font-bold text-sm">0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="FavoriteMenusModal.closeFormModal()"
+                        class="px-4 py-2 bg-white text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-100 transition">
+                        ยกเลิก
+                    </button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-emerald-850 hover:bg-emerald-900 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> <span>บันทึกสูตรเมนู</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- DAILY EXPORT QUICK SELECTOR & PREVIEW MODAL -->
+    <div id="dailyExportModal"
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        <div
+            class="glass-panel w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
+            <!-- Modal Header -->
+            <div class="bg-emerald-850 text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gold-400/20 text-gold-400 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base sm:text-lg">ส่งออกสรุปรายการอาหารประจำวัน (PDF)</h3>
+                        <p class="text-xs text-emerald-200">รายงานสรุปอาหาร 3 มื้อและแจกแจงวัตถุดิบฉบับทางการ</p>
+                    </div>
+                </div>
+                <button onclick="DailyExport.closeSelector()"
+                    class="w-8 h-8 rounded-full bg-emerald-950/60 hover:bg-emerald-950 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Date Selector & Quick Navigation Bar -->
+            <div class="bg-slate-100 p-4 border-b border-slate-200 shrink-0 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <label class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <i class="fa-regular fa-calendar-check text-emerald-700"></i>
+                        <span>เลือกวันที่ต้องการส่งออก:</span>
+                    </label>
+                    <div class="flex items-center gap-1">
+                        <button type="button" onclick="DailyExport.changeDateByDays(-1)"
+                            class="px-2.5 py-1 bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition" title="วันก่อนหน้า">
+                            <i class="fa-solid fa-chevron-left"></i> วันก่อน
+                        </button>
+                        <button type="button" onclick="DailyExport.setDateToToday()"
+                            class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-850 border border-emerald-200 rounded-lg text-xs font-bold transition">
+                            วันนี้
+                        </button>
+                        <button type="button" onclick="DailyExport.changeDateByDays(1)"
+                            class="px-2.5 py-1 bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition" title="วันถัดไป">
+                            วันถัดไป <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input type="date" id="dailyExportDateInput"
+                        onchange="DailyExport.updateSelectorPreview()"
+                        class="w-full px-4 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 text-sm focus:ring-2 focus:ring-emerald-700 focus:outline-none shadow-xs">
+                </div>
+            </div>
+
+            <!-- Modal Body: Daily Meals Summary Cards -->
+            <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <h4 id="dailyExportDateTitle" class="font-bold text-sm text-emerald-950">กำลังโหลด...</h4>
+                    <span class="text-[11px] text-slate-500 font-medium">สรุปข้อมูล 3 มื้อ</span>
+                </div>
+
+                <div id="dailyExportPreviewCards" class="space-y-3">
+                    <!-- Dynamic preview loaded via JS -->
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-100 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 shrink-0">
+                <button type="button" onclick="DailyExport.closeSelector()"
+                    class="px-4 py-2 bg-white text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">
+                    ปิดหน้าต่าง
+                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="DailyExport.previewPDF()"
+                        class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-850 border border-emerald-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-eye"></i> <span>ดูตัวอย่างทางการ</span>
+                    </button>
+                    <button type="button" onclick="DailyExport.exportPDF()"
+                        class="px-5 py-2 bg-emerald-850 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-print text-gold-400"></i>
+                        <span>พิมพ์ / บันทึก PDF (A4)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DAILY OFFICIAL REPORT PREVIEW MODAL -->
+    <div id="dailyPreviewModal"
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        <div
+            class="glass-panel w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
+            <!-- Modal Header -->
+            <div class="bg-emerald-850 text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0 no-print">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-file-invoice text-gold-400 text-xl"></i>
+                    <div>
+                        <h3 class="font-bold text-base sm:text-lg">ตัวอย่างเอกสารรายงานประจำวัน (ฉบับทางการ)</h3>
+                        <p class="text-xs text-emerald-200">แบบฟอร์มรายงานสรุปอาหารและวัตถุดิบประกอบอาหารประจำวัน</p>
+                    </div>
+                </div>
+                <button onclick="DailyExport.closePreviewModal()"
+                    class="w-8 h-8 rounded-full bg-emerald-950/60 hover:bg-emerald-950 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Preview Body -->
+            <div id="dailyPreviewModalBody" class="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-100">
+                <!-- Official HTML Document Injected here -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-100 px-4 sm:px-6 py-3.5 flex items-center justify-between border-t border-slate-200 shrink-0 no-print">
+                <button type="button" onclick="DailyExport.closePreviewModal()"
+                    class="px-4 py-2 bg-white text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">
+                    ปิดหน้าต่าง
+                </button>
+                <button type="button" onclick="DailyExport.exportPDF()"
+                    class="px-5 py-2 bg-emerald-850 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-print text-gold-400"></i>
+                    <span>พิมพ์ / บันทึก PDF (A4)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DAILY OFFICIAL HIDDEN PRINT CONTAINER -->
+    <div id="dailyOfficialPrintArea" class="hidden print:block print-container"></div>
+
+
+    <!-- FOOTER -->
+    <footer class="bg-white/80 border-t border-slate-200/80 py-3.5 mt-auto no-print">
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+            <p>ระบบจัดเก็บข้อมูลเมนูอาหารหอพักนักเรียน โรงเรียนชุมชนแม่ลาศึกษา</p>
+            <p class="font-semibold text-slate-700">พัฒนาโดย: <span class="text-emerald-850 font-bold">นางสาวศุทธินี ถาวร</span></p>
+        </div>
+    </footer>
+
+    <!-- Application Script Modules -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/standardPrices.js"></script>
+    <script src="js/favoriteMenus.js"></script>
+    <script src="js/dailyExport.js"></script>
+    <script src="js/mealModal.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

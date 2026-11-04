@@ -1,0 +1,337 @@
+/* ==========================================================================
+   MealTrack - ChumChonMaeLa School Cozy Pearl & Red Stylesheet
+   ========================================================================== */
+
+/* Design Tokens & Custom Properties — Pearl White & Red Cozy Education */
+:root {
+    --color-primary-red: #881313;
+    --color-primary-dark: #470808;
+    --color-primary-light: #fff5f5;
+    --color-gold-primary: #d99b26;
+    --color-gold-light: #fdf8ee;
+    --color-gold-dark: #b5812b;
+    --color-pearl-bg: #fcfaf7;
+    --color-pearl-card: #ffffff;
+    --glass-bg: rgba(255, 255, 255, 0.96);
+    --glass-border: rgba(136, 19, 19, 0.12);
+    --backdrop-blur: 16px;
+    --shadow-subtle: 0 4px 20px -2px rgba(136, 19, 19, 0.06);
+    --shadow-glass: 0 20px 40px -15px rgba(71, 8, 8, 0.22);
+    --radius-xl: 1rem;
+    --radius-2xl: 1.25rem;
+    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Aliases for components */
+    --color-emerald-primary: #881313;
+    --color-emerald-dark: #470808;
+    --color-emerald-light: #fff5f5;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #f7f3ed;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+    background: #dcd1c2;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary-red);
+}
+
+/* Base Layout & Typography */
+body {
+    font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--color-pearl-bg);
+    color: #28211b;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Glassmorphism Components */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--backdrop-blur));
+    -webkit-backdrop-filter: blur(var(--backdrop-blur));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-glass);
+}
+
+.modal-backdrop {
+    background: rgba(45, 8, 8, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: fadeIn var(--transition-fast);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(235, 227, 216, 0.85);
+    transition: all var(--transition-fast);
+}
+.glass-card:hover {
+    box-shadow: var(--shadow-subtle);
+    border-color: rgba(136, 19, 19, 0.22);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+@keyframes slideUp {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slide-up {
+    animation: slideUp var(--transition-smooth) forwards;
+}
+
+.animate-slide-down {
+    animation: slideDown var(--transition-smooth) forwards;
+}
+
+.animate-fade-in {
+    animation: fadeIn var(--transition-fast) forwards;
+}
+
+/* Global Overflow-X guard */
+html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+/* Responsive Calendar Grid & Day Cells */
+.calendar-grid-cell {
+    min-height: 105px;
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+@media (max-width: 640px) {
+    .calendar-grid-cell {
+        min-height: 75px;
+        padding: 0.375rem;
+    }
+}
+@media (min-width: 1024px) {
+    .calendar-grid-cell {
+        min-height: 120px;
+    }
+}
+
+.calendar-grid-cell:hover {
+    background-color: var(--color-primary-light);
+}
+
+/* Badge Styles — Cozy & Warm */
+.badge-breakfast {
+    background-color: #fff8f0;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+}
+.badge-lunch {
+    background-color: #fff1f2;
+    color: #9f1239;
+    border: 1px solid #fecdd3;
+}
+.badge-dinner {
+    background-color: #f5f3ff;
+    color: #5b21b6;
+    border: 1px solid #ddd6fe;
+}
+
+/* Dev / Team Badge Card Styling (Pearl White & Crimson Accent) */
+.dev-badge-pill,
+.team-badge-card {
+    background: #fdfaf7;
+    border: 1.5px solid #fecdd3;
+    border-radius: 20px;
+    box-shadow: 0 4px 18px -4px rgba(159, 18, 57, 0.08);
+    transition: all var(--transition-fast);
+}
+
+.dev-badge-pill:hover,
+.team-badge-card:hover {
+    border-color: #fda4af;
+    box-shadow: 0 6px 22px -4px rgba(159, 18, 57, 0.14);
+    background: #fff5f5;
+}
+
+.team-badge-row {
+    background: #ffffff;
+    border: 1px solid rgba(254, 205, 211, 0.7);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: all var(--transition-fast);
+}
+
+.team-badge-row:hover {
+    border-color: #fecdd3;
+    box-shadow: 0 2px 6px rgba(159, 18, 57, 0.08);
+}
+
+/* Toast Container */
+#toastContainer {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 60;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    pointer-events: none;
+}
+
+.toast-item {
+    pointer-events: auto;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Print Styles & Official Government Document Formatting */
+@page {
+    size: A4 portrait;
+    margin: 6mm 8mm 6mm 8mm;
+}
+
+@media print {
+    /* 1. Global Reset: Remove flex and full-height constraints from html/body */
+    html, body,
+    html.printing-active, body.printing-active,
+    body.printing-daily, body.printing-stats {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        display: block !important;
+        overflow: visible !important;
+        font-family: 'Sarabun', 'TH Sarabun PSK', 'TH Sarabun New', sans-serif !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 2. Hide all body children except the targeted print area */
+    body.printing-daily > *:not(#dailyOfficialPrintArea) {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        max-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* Hide standard UI elements unconditionally */
+    header, footer, main, nav,
+    #authModal, #mealModal, #standardPricesModal, #addStandardItemModal,
+    #favoriteMenusModal, #favMenuFormModal, #dailyExportModal, #dailyPreviewModal,
+    #statsModal, #toastContainer, #topProgressBarContainer, #mobileMenuDrawer,
+    #mobileMenuBackdrop, .no-print, [no-print] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* 3. When Printing Daily Official Report */
+    body.printing-daily #dailyOfficialPrintArea {
+        display: block !important;
+        visibility: visible !important;
+        position: static !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+
+    body.printing-daily #dailyOfficialPrintArea * {
+        visibility: visible !important;
+    }
+
+    /* 4. When Printing Stats Modal */
+    body.printing-stats #statsModal,
+    body.printing-stats #printReportArea {
+        display: block !important;
+        visibility: visible !important;
+        position: static !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
+    body.printing-stats #printReportArea * {
+        visibility: visible !important;
+    }
+
+    /* 5. Official Document Typography & Tables */
+    .official-daily-report {
+        padding: 0 !important;
+        margin: 0 auto !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        font-size: 9.5pt !important;
+        line-height: 1.25 !important;
+        color: #000000 !important;
+        background: #ffffff !important;
+    }
+
+    .official-daily-report table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        font-size: 9pt !important;
+    }
+
+    .official-daily-report th,
+    .official-daily-report td {
+        border: 1px solid #000000 !important;
+        padding: 2.5px 5px !important;
+        color: #000000 !important;
+    }
+
+    .official-signatures {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-top: 12px !important;
+    }
+}
+
+/* Autocomplete Dropdown Styling */
+.autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    max-height: 220px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border: 1px solid #ede3d8;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 25px -5px rgba(60, 20, 20, 0.12), 0 8px 10px -6px rgba(60, 20, 20, 0.08);
+    margin-top: 4px;
+}
+
+.autocomplete-item {
+    transition: background-color 0.15s ease;
+}
+
+.autocomplete-item:hover {
+    background-color: #fff4f4;
+}
+
