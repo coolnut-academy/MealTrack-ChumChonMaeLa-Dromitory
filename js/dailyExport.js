@@ -471,7 +471,7 @@ const DailyExport = {
                     </tr>
                     <tr>
                         <td style="padding: 3px 6px; border: 1px solid #000;">
-                            <strong>งบประมาณจัดสรรประจำวัน:</strong> ${info.allocatedBudget.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท <span style="font-size: 8.5pt;">(${escapeHtml(info.budgetNote)})</span>
+                            <strong>งบประมาณจัดสรรประจำวัน:</strong> ${info.allocatedBudget.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท
                         </td>
                         <td style="padding: 3px 6px; border: 1px solid #000;">
                             <strong>รวมค่าใช้จ่ายจริง 3 มื้อ:</strong> <strong>${info.totalSpent.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> บาท
