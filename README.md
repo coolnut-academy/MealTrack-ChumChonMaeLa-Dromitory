@@ -80,11 +80,15 @@
 
 ## 💰 สูตรคำนวณงบประมาณประจำวัน (Daily Budget Rate)
 
-งบประมาณอาหารกลางวันและนักเรียนพักนอน คำนวณจากอัตราค่าอาหารนักเรียน 2 กลุ่ม ดังนี้:
+งบประมาณประจำวันตั้งค่าได้จากปุ่ม **"ตั้งค่างบ"** บนแถบเมนู (หรือปุ่ม "ตั้งค่างบ" ในหน้าส่งออก PDF) มี 2 โหมด:
 
-$$ \text{งบประมาณรวมต่อวัน} = (86 \text{ คน} \times 40 \text{ บาท}) + (39 \text{ คน} \times 60 \text{ บาท}) = 3,440 + 2,340 = 5,780 \text{ บาท/วัน} $$
+1. **คำนวณอัตโนมัติ** — จากจำนวนนักเรียนแต่ละระดับชั้น (เช่น อนุบาล, ประถม, ม.ต้น — เพิ่ม/ลบกลุ่มได้) × อัตราค่าอาหาร
 
-*หมายเหตุ: สามารถปรับเปลี่ยนอัตราค่าอาหารได้ที่ [js/config.js](file:///d:/MealTrack-ChumChonMaeLa-Dromitory/js/config.js)*
+$$ \text{งบประมาณรวมต่อวัน} = \sum (\text{จำนวนนักเรียนระดับชั้น} \times \text{อัตราค่าอาหารต่อคน}) $$
+
+2. **กำหนดเอง** — ระบุยอดงบที่ได้รับจัดสรรจริง (อาจมากหรือน้อยกว่ายอดคำนวณ) ระบบจะแสดงส่วนต่างเทียบกับยอดคำนวณ
+
+*หมายเหตุ: ค่าตั้งค่าเก็บใน Google Sheets (ชีต `Settings`, key `budget_settings`) และแคชใน localStorage — ค่าที่บันทึกจะถูกใช้ทั้งในหน้าสถิติ, หน้าพรีวิว และ PDF printout*
 
 ---
 
@@ -161,8 +165,8 @@ const CONFIG = {
     // URL ของ Google Apps Script Web App
     API_URL: "https://script.google.com/macros/s/AKfycbwaLit4Xb-t-LEsctl0eZWcnKQGxJiPSOOQA1NP7sTXF05oeh6XDr2uA4f9B_RpArbr/exec",
 
-    // อัตราการคำนวณงบประมาณประจำวัน (บาท/วัน)
-    DAILY_BUDGET_RATE: 5780,
+    // งบประมาณจัดสรรประจำวัน: อ่านค่าจากหน้า "ตั้งค่างบ" (js/budgetSettings.js)
+    get DAILY_BUDGET_RATE() { return BudgetSettings.getDailyBudget(); },
 
     // คีย์สำหรับเก็บบันทึกสถานะการเข้าสู่ระบบใน LocalStorage
     STORAGE_AUTH_KEY: "meal_tracker_auth"

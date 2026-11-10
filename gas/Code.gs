@@ -42,6 +42,13 @@ function doPost(e) {
     else if (action === "save_standard_prices") {
       result = saveStandardPrices(payload.year, payload.month, payload.data);
     }
+    // Route: App Settings (เช่น ตั้งค่างบประมาณ & จำนวนนักเรียน)
+    else if (action === "get_settings") {
+      result = getSetting(payload.key);
+    }
+    else if (action === "save_settings") {
+      result = saveSetting(payload.key, payload.value);
+    }
 
     return ContentService.createTextOutput(JSON.stringify(result))
       .setMimeType(ContentService.MimeType.JSON);
@@ -330,4 +337,47 @@ function saveStandardPrices(year, month, priceDataStr) {
     sheet.appendRow([Number(year), Number(month), dataStr, now]);
     return { success: true, message: "Saved standard prices" };
   }
+}
+
+
+
+/* ==========================================================================
+   APP SETTINGS (ค่าตั้งค่าระบบแบบ key/value เช่น budget_settings)
+   ========================================================================== */
+function getSettingsSheet() {
+  var ss = getSpreadsheet();
+  var sheet = ss.getSheetByName("Settings");
+  if (!sheet) {
+    sheet = ss.insertSheet("Settings");
+    sheet.appendRow(["key", "value", "updated_at"]);
+  }
+  return sheet;
+}
+
+function getSetting(key) {
+  if (!key) return { success: false, message: "Missing key" };
+  var data = getSettingsSheet().getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(key)) {
+      return { success: true, data: data[i][1] };
+    }
+  }
+  return { success: true, data: null };
+}
+
+function saveSetting(key, value) {
+  if (!key) return { success: false, message: "Missing key" };
+  var sheet = getSettingsSheet();
+  var data = sheet.getDataRange().getValues();
+  var valueStr = typeof value === 'string' ? value : JSON.stringify(value);
+  var now = new Date().toISOString();
+
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(key)) {
+      sheet.getRange(i + 1, 2, 1, 2).setValues([[valueStr, now]]);
+      return { success: true, message: "Updated setting" };
+    }
+  }
+  sheet.appendRow([String(key), valueStr, now]);
+  return { success: true, message: "Saved setting" };
 }

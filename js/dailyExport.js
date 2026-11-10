@@ -121,10 +121,21 @@ const DailyExport = {
         const dCost = getCost(dRec);
         const totalSpent = bCost + lCost + dCost;
 
-        const allocatedBudget = (typeof CONFIG !== 'undefined' && CONFIG.DAILY_BUDGET_RATE)
-            ? CONFIG.DAILY_BUDGET_RATE
-            : 5780;
+        const budget = BudgetSettings.getSummary();
+        const allocatedBudget = budget.dailyBudget;
         const diffBudget = allocatedBudget - totalSpent;
+
+        // ข้อความสำหรับรายงาน
+        const fmt2 = (n) => Number(n).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const targetText = budget.activeGroups.length > 0
+            ? `${budget.activeGroups.map(g => `${g.name} ${g.students.toLocaleString('th-TH')} คน`).join(', ')} (รวม ${budget.totalStudents.toLocaleString('th-TH')} คน)`
+            : '- ยังไม่ได้ตั้งค่าจำนวนนักเรียน -';
+        const rateBreakdown = budget.activeGroups
+            .map(g => `${g.name} ${g.students.toLocaleString('th-TH')}×${g.rate.toLocaleString('th-TH')} บ.`)
+            .join(' + ');
+        const budgetNote = budget.isCustom
+            ? `กำหนดเอง${rateBreakdown ? ` · ตามอัตราจริง ${fmt2(budget.calculatedBudget)} บาท` : ''}`
+            : (rateBreakdown || 'ยังไม่ได้ตั้งค่าอัตราค่าอาหาร');
 
         return {
             dateStr,
@@ -135,6 +146,10 @@ const DailyExport = {
             lCost,
             dCost,
             totalSpent,
+            totalStudents: budget.totalStudents,
+            targetText,
+            budgetNote,
+            budgetIsCustom: budget.isCustom,
             allocatedBudget,
             diffBudget,
             hasData: Boolean(bRec || lRec || dRec)
@@ -312,9 +327,14 @@ const DailyExport = {
                     </div>
                     <div>
                         <p class="font-bold text-slate-800">รวมค่าใช้จ่ายจริง 3 มื้อ: <span class="text-emerald-850 font-black text-sm">${info.totalSpent.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> บาท</p>
-                        <p class="text-[11px] text-slate-500">งบประมาณจัดสรรประจำวัน: ${info.allocatedBudget.toLocaleString('th-TH')} บาท (ม.ต้น 40 บ. + ม.ปลาย 60 บ.)</p>
+                        <p class="text-[11px] text-slate-500">งบประมาณจัดสรรประจำวัน: <strong class="text-slate-700">${info.allocatedBudget.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> บาท (${escapeHtml(info.budgetNote)})</p>
+                        <p class="text-[11px] text-slate-500">กลุ่มเป้าหมาย: ${escapeHtml(info.targetText)}</p>
                     </div>
                 </div>
+                <button type="button" onclick="BudgetSettingsModal.open()"
+                    class="shrink-0 px-3 py-1.5 bg-white hover:bg-emerald-50 text-emerald-850 border border-emerald-300 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5" title="ตั้งค่าจำนวนนักเรียนและงบประมาณ">
+                    <i class="fa-solid fa-sliders"></i><span class="hidden sm:inline">ตั้งค่างบ</span>
+                </button>
             </div>
         `;
 
@@ -446,12 +466,12 @@ const DailyExport = {
                             <strong>ประจำวัน:</strong> ${thaiFullDate}
                         </td>
                         <td style="padding: 3px 6px; width: 45%; border: 1px solid #000; background-color: #fafafa;">
-                            <strong>กลุ่มเป้าหมาย:</strong> นักเรียนพักนอน ม.ต้น 86 คน, ม.ปลาย 39 คน (รวม 125 คน)
+                            <strong>กลุ่มเป้าหมาย:</strong> นักเรียนพักนอน ${escapeHtml(info.targetText)}
                         </td>
                     </tr>
                     <tr>
                         <td style="padding: 3px 6px; border: 1px solid #000;">
-                            <strong>งบประมาณจัดสรรประจำวัน:</strong> 5,780.00 บาท (ม.ต้น 40 บ. + ม.ปลาย 60 บ.)
+                            <strong>งบประมาณจัดสรรประจำวัน:</strong> ${info.allocatedBudget.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท <span style="font-size: 8.5pt;">(${escapeHtml(info.budgetNote)})</span>
                         </td>
                         <td style="padding: 3px 6px; border: 1px solid #000;">
                             <strong>รวมค่าใช้จ่ายจริง 3 มื้อ:</strong> <strong>${info.totalSpent.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> บาท

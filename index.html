@@ -223,6 +223,12 @@
                     <i class="fa-solid fa-chart-pie text-gold-400"></i>
                     <span>สรุปสถิติ & รายงาน</span>
                 </button>
+                <button onclick="BudgetSettingsModal.open()"
+                    class="px-3 py-2 bg-emerald-700/90 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl border border-emerald-600/50 transition flex items-center gap-2 shadow-xs"
+                    title="ตั้งค่าจำนวนนักเรียน อัตราค่าอาหาร และงบประมาณจัดสรรประจำวัน">
+                    <i class="fa-solid fa-sliders text-gold-400"></i>
+                    <span>ตั้งค่างบ</span>
+                </button>
                 <button onclick="App.handleLogout()"
                     class="px-3 py-2 bg-emerald-950/80 hover:bg-red-800 text-emerald-200 hover:text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
                     title="ออกจากระบบ">
@@ -312,6 +318,19 @@
                 <div class="flex-1 min-w-0">
                     <p class="text-xs font-bold text-white">รายงานสถิติ & งบประมาณ</p>
                     <p class="text-[10px] text-emerald-300/80 truncate">สรุปยอดค่าใช้จ่ายและพิมพ์รายงาน</p>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-emerald-400/60"></i>
+            </button>
+
+            <!-- 4.1 Budget Settings -->
+            <button onclick="UI.closeMobileMenu(); BudgetSettingsModal.open();"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-850 active:bg-emerald-800 border border-emerald-800/60 flex items-center gap-3 text-left transition group">
+                <div class="w-9 h-9 rounded-lg bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0 text-sm group-hover:scale-110 transition">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-white">ตั้งค่างบประมาณ & จำนวนนักเรียน</p>
+                    <p class="text-[10px] text-emerald-300/80 truncate">จำนวนนักเรียนแต่ละชั้น อัตราค่าอาหาร งบประจำวัน</p>
                 </div>
                 <i class="fa-solid fa-chevron-right text-[10px] text-emerald-400/60"></i>
             </button>
@@ -1260,6 +1279,117 @@
         </div>
     </div>
 
+    <!-- BUDGET SETTINGS MODAL (จำนวนนักเรียน / อัตราค่าอาหาร / งบประมาณจัดสรรประจำวัน) -->
+    <div id="budgetSettingsModal"
+        class="fixed inset-0 z-[60] hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        <div
+            class="glass-panel w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
+            <!-- Modal Header -->
+            <div class="bg-emerald-850 text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-sliders text-gold-400 text-xl"></i>
+                    <div>
+                        <h3 class="font-bold text-base sm:text-lg">ตั้งค่างบประมาณ & จำนวนนักเรียน</h3>
+                        <p class="text-xs text-emerald-200">ใช้คำนวณงบประมาณจัดสรรประจำวันในรายงานและ PDF</p>
+                    </div>
+                </div>
+                <button onclick="BudgetSettingsModal.close()"
+                    class="w-8 h-8 rounded-full bg-emerald-950/60 hover:bg-emerald-950 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-5">
+                <!-- 1. Student groups -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-users text-emerald-700"></i> จำนวนนักเรียนและอัตราค่าอาหาร (ต่อคน/วัน)
+                        </h4>
+                        <button type="button" onclick="BudgetSettingsModal.addGroup()"
+                            class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-850 border border-emerald-300 rounded-lg text-[11px] font-bold transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-[10px]"></i> เพิ่มกลุ่ม/ระดับชั้น
+                        </button>
+                    </div>
+                    <div class="border border-slate-200 rounded-xl overflow-x-auto bg-white shadow-xs">
+                        <table class="w-full text-left border-collapse text-xs min-w-[460px]">
+                            <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                                <tr>
+                                    <th class="py-2 px-2">ระดับชั้น</th>
+                                    <th class="py-2 px-2 w-24 text-right">จำนวน (คน)</th>
+                                    <th class="py-2 px-2 w-28 text-right">อัตรา (บาท/คน)</th>
+                                    <th class="py-2 px-2 w-28 text-right">รวม (บาท)</th>
+                                    <th class="py-2 px-1 w-9"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="budgetGroupsBody"></tbody>
+                            <tfoot class="bg-slate-50 font-bold border-t border-slate-200">
+                                <tr>
+                                    <td class="py-2 px-2 text-slate-700">รวมทั้งหมด</td>
+                                    <td class="py-2 px-2 text-right"><span id="budgetTotalStudents">0</span></td>
+                                    <td class="py-2 px-2"></td>
+                                    <td class="py-2 px-2 text-right text-emerald-850 font-mono"><span id="budgetCalculated">0.00</span></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-1.5">* ระดับชั้นที่จำนวนนักเรียนเป็น 0 จะไม่แสดงในรายงาน PDF</p>
+                </div>
+
+                <!-- 2. Budget mode -->
+                <div>
+                    <h4 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-sack-dollar text-emerald-700"></i> งบประมาณจัดสรรประจำวัน
+                    </h4>
+                    <div class="space-y-2">
+                        <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:border-emerald-400 transition">
+                            <input type="radio" name="budgetMode" id="budgetModeAuto" class="mt-0.5 accent-emerald-700"
+                                onchange="BudgetSettingsModal.setCustomMode(false)">
+                            <div>
+                                <p class="text-xs font-bold text-slate-800">คำนวณอัตโนมัติจากจำนวนนักเรียน × อัตราค่าอาหาร</p>
+                                <p class="text-[11px] text-slate-500">ใช้ยอดรวมจากตารางด้านบน</p>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:border-emerald-400 transition">
+                            <input type="radio" name="budgetMode" id="budgetModeCustom" class="mt-0.5 accent-emerald-700"
+                                onchange="BudgetSettingsModal.setCustomMode(true)">
+                            <div class="flex-1">
+                                <p class="text-xs font-bold text-slate-800">กำหนดเอง (กรณีได้รับจัดสรรมากหรือน้อยกว่ายอดคำนวณ)</p>
+                                <div class="flex items-center gap-2 mt-1.5">
+                                    <input type="number" id="budgetCustomInput" min="0" step="any" placeholder="0.00"
+                                        oninput="BudgetSettingsModal.setCustomBudget(this.value)"
+                                        class="w-40 px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50/30 text-xs font-bold text-right text-emerald-850 focus:ring-2 focus:ring-emerald-700 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200">
+                                    <span class="text-xs text-slate-600">บาท/วัน</span>
+                                </div>
+                                <p id="budgetCustomDiff" class="text-[11px] mt-1"></p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 3. Result -->
+                <div class="p-3.5 rounded-xl bg-emerald-850 text-white flex items-center justify-between">
+                    <span class="text-xs font-semibold text-emerald-100">งบประมาณจัดสรรประจำวันที่จะใช้ในรายงาน</span>
+                    <span class="text-lg font-black text-gold-400 font-mono"><span id="budgetFinal">0.00</span> <span class="text-xs font-semibold text-emerald-100">บาท</span></span>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-slate-100 px-4 sm:px-6 py-3.5 flex items-center justify-end gap-2 border-t border-slate-200 shrink-0">
+                <button type="button" onclick="BudgetSettingsModal.close()"
+                    class="px-4 py-2 bg-white text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">
+                    ยกเลิก
+                </button>
+                <button type="button" id="budgetSaveBtn" onclick="BudgetSettingsModal.save()"
+                    class="px-5 py-2 bg-emerald-850 hover:bg-emerald-900 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk"></i> <span>บันทึกการตั้งค่า</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- DAILY OFFICIAL HIDDEN PRINT CONTAINER -->
     <div id="dailyOfficialPrintArea" class="hidden print:block print-container"></div>
 
@@ -1277,6 +1407,7 @@
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/budgetSettings.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/standardPrices.js"></script>
     <script src="js/favoriteMenus.js"></script>
