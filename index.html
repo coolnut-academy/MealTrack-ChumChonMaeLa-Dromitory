@@ -434,10 +434,10 @@
 
         <!-- GRID VIEW CONTAINER (Desktop / Tablet / Mobile Grid) -->
         <div id="calendarGridContainer"
-            class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex-1 flex flex-col">
+            class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-visible flex-1 flex flex-col relative">
             <!-- Days of Week Header -->
             <div
-                class="grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-center py-2.5 text-xs font-bold text-slate-600">
+                class="grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-center py-2.5 text-xs font-bold text-slate-600 rounded-t-2xl">
                 <div class="text-red-600">อา.</div>
                 <div>จ.</div>
                 <div>อ.</div>
@@ -449,7 +449,7 @@
 
             <!-- Calendar Days Cells -->
             <div id="calendarGrid"
-                class="grid grid-cols-7 flex-1 auto-rows-fr gap-px bg-slate-200 min-h-[420px] sm:min-h-[520px]">
+                class="grid grid-cols-7 flex-1 auto-rows-fr gap-px bg-slate-200 min-h-[420px] sm:min-h-[520px] rounded-b-2xl">
                 <!-- Dynamic Day Boxes Generated via JavaScript -->
             </div>
         </div>
@@ -464,7 +464,7 @@
 
     <!-- MEAL ENTRY & EDIT POPUP MODAL -->
     <div id="mealModal"
-        class="fixed inset-0 z-40 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
         <div
             class="glass-panel w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
             <!-- Modal Header -->
@@ -580,7 +580,7 @@
 
     <!-- STANDARD PRICES MANAGEMENT MODAL -->
     <div id="standardPricesModal"
-        class="fixed inset-0 z-40 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
         <div
             class="glass-panel w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
             <!-- Modal Header -->
@@ -665,7 +665,7 @@
 
     <!-- ADD STANDARD PRICE ITEM MODAL -->
     <div id="addStandardItemModal"
-        class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 modal-backdrop overflow-y-auto">
+        class="fixed inset-0 z-[60] hidden flex items-center justify-center p-3 sm:p-4 modal-backdrop overflow-y-auto">
         <div
             class="glass-panel w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col animate-slide-up">
             <!-- Modal Header -->
@@ -732,7 +732,7 @@
 
     <!-- STATISTICS & REPORT MODAL -->
     <div id="statsModal"
-        class="fixed inset-0 z-40 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
         <div
             class="glass-panel w-full max-w-5xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
             <!-- Modal Header -->
@@ -1021,7 +1021,7 @@
 
     <!-- POPULAR / FAVORITE MENUS MANAGEMENT MODAL -->
     <div id="favoriteMenusModal"
-        class="fixed inset-0 z-40 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
         <div
             class="glass-panel w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
             <!-- Modal Header -->
@@ -1078,7 +1078,7 @@
 
     <!-- ADD/EDIT FAVORITE MENU FORM MODAL -->
     <div id="favMenuFormModal"
-        class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        class="fixed inset-0 z-[60] hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
         <div
             class="glass-panel w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
             <!-- Modal Header -->
@@ -1241,7 +1241,7 @@
 
     <!-- DAILY OFFICIAL REPORT PREVIEW MODAL -->
     <div id="dailyPreviewModal"
-        class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
+        class="fixed inset-0 z-[60] hidden flex items-center justify-center p-2 sm:p-4 modal-backdrop overflow-y-auto">
         <div
             class="glass-panel w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 my-4 sm:my-8 overflow-hidden flex flex-col max-h-[92vh] animate-slide-up">
             <!-- Modal Header -->

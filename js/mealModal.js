@@ -341,6 +341,7 @@ const MealModal = {
         this.activeRecord.menu_name = menuInput ? menuInput.value.trim() : "";
         this.activeRecord.status = "COMPLETE";
         this.activeRecord._localSaveTime = Date.now();
+        this.activeRecord._synced = false;
 
         // Save to Local Cache immediately for fast UI feedback
         if (!monthData[this.selectedDateStr]) monthData[this.selectedDateStr] = {};
@@ -351,15 +352,35 @@ const MealModal = {
         renderMobileAgendaView();
         this.close();
 
-        UI.showToast(`บันทึกข้อมูล ${this.selectedMealType} เรียบร้อยแล้ว`, 'success');
+        UI.showToast(`บันทึกข้อมูล ${this.selectedMealType} ในเครื่องเรียบร้อยแล้ว`, 'info');
+
+        if (typeof UI !== 'undefined' && UI.setSyncStatus) {
+            UI.setSyncStatus('syncing', 'กำลังบันทึกลง Google Sheets...');
+        }
 
         // Sync with Google Sheets
         try {
             const res = await API.saveMealRecord(this.activeRecord);
             if (res && res.success) {
                 console.log("Google Sheets Sync successful");
+                if (monthData[this.selectedDateStr] && monthData[this.selectedDateStr][this.selectedMealType]) {
+                    monthData[this.selectedDateStr][this.selectedMealType]._synced = true;
+                    _saveToLocalCache();
+                }
+                if (typeof UI !== 'undefined' && UI.setSyncStatus) {
+                    UI.setSyncStatus('synced', 'บันทึกลง Google Sheets เรียบร้อย');
+                }
+                UI.showToast(`ซิงค์ข้อมูล ${this.selectedMealType} ลง Google Sheets สำเร็จแล้ว`, 'success');
+            } else {
+                if (typeof UI !== 'undefined' && UI.setSyncStatus) {
+                    UI.setSyncStatus('error', 'บันทึกในเครื่องแล้ว (ค้างส่ง Google Sheets)');
+                }
+                UI.showToast(`บันทึกในเครื่องแล้ว แต่ส่งไป Google Sheets ไม่สำเร็จ`, 'warning');
             }
         } catch (err) {
+            if (typeof UI !== 'undefined' && UI.setSyncStatus) {
+                UI.setSyncStatus('error', 'บันทึกในเครื่องแล้ว (ส่ง Google Sheets ไม่สำเร็จ)');
+            }
             UI.showToast("บันทึกในเครื่องเรียบร้อยแล้ว (ไม่สามารถส่งไป Google Sheets ได้)", "warning");
         }
 

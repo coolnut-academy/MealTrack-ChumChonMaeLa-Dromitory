@@ -84,6 +84,8 @@ body {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
 @keyframes slideUp {
     from { transform: translateY(16px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
@@ -185,7 +187,7 @@ html, body {
     position: fixed;
     bottom: 1.5rem;
     right: 1.5rem;
-    z-index: 60;
+    z-index: 70;
     display: flex;
     flex-direction: column-reverse;
     gap: 0.5rem;

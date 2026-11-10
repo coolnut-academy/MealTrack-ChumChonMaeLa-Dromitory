@@ -151,6 +151,9 @@ function organizeMonthDataCache(recordsArray) {
             if (localRec && localRec._localSaveTime && localRec._localSaveTime > (window._lastFetchStartTime || 0)) {
                 return;
             }
+            if (serverRec) {
+                serverRec._synced = true;
+            }
             monthData[dStr][mealType] = serverRec;
         });
     });
@@ -225,7 +228,7 @@ function renderCalendarGrid() {
         const fullDateStr = `${currentYear}-${monthStr}-${dayStr}`;
 
         const dayCell = document.createElement('div');
-        dayCell.className = 'calendar-grid-cell bg-white p-1 sm:p-2 flex flex-col justify-between hover:bg-emerald-50/40 transition cursor-pointer group relative border-t border-l border-slate-100';
+        dayCell.className = 'calendar-grid-cell bg-white p-1 sm:p-2 flex flex-col justify-between hover:bg-emerald-50/40 hover:z-30 transition cursor-pointer group relative border-t border-l border-slate-100';
         dayCell.onclick = () => MealModal.openForDate(fullDateStr);
 
         // Day Number Header
@@ -279,16 +282,69 @@ function renderCalendarGrid() {
 
         // Hover Tooltip / Detail Popup for Desktop & Mobile
         if (bRec || lRec || dRec) {
+            const colIdx = (firstDay + day - 1) % 7; // 0 = Sun, 6 = Sat
+            const rowIdx = Math.floor((firstDay + day - 1) / 7);
+
+            let posClasses = '';
+            if (rowIdx <= 1) {
+                posClasses += ' top-full mt-2';
+            } else {
+                posClasses += ' bottom-full mb-2';
+            }
+
+            if (colIdx <= 1) {
+                posClasses += ' left-0 sm:left-1';
+            } else if (colIdx >= 5) {
+                posClasses += ' right-0 sm:right-1';
+            } else {
+                posClasses += ' left-1/2 -translate-x-1/2';
+            }
+
             const tooltip = document.createElement('div');
-            tooltip.className = 'hidden group-hover:block absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-56 p-3 bg-slate-900 text-white text-xs rounded-xl shadow-2xl z-30 pointer-events-none animate-fade-in border border-slate-700';
-            let tooltipHTML = `<div class="font-bold text-emerald-300 mb-1.5 border-b border-slate-700 pb-1 flex items-center justify-between">
-                <span>วันที่ ${day} ${CONFIG.THAI_MONTHS[currentMonth-1]}</span>
-                <i class="fa-solid fa-utensils text-[10px] text-slate-400"></i>
+            tooltip.className = `hidden group-hover:block absolute ${posClasses} w-60 p-3 bg-white/98 text-slate-800 text-xs rounded-2xl shadow-2xl z-40 pointer-events-none animate-fade-in border border-emerald-200 backdrop-blur-md`;
+
+            const totalDayCost = (bRec ? Number(bRec.total_cost || 0) : 0) + (lRec ? Number(lRec.total_cost || 0) : 0) + (dRec ? Number(dRec.total_cost || 0) : 0);
+
+            let tooltipHTML = `<div class="font-bold text-emerald-850 mb-2 pb-1.5 border-b border-emerald-100 flex items-center justify-between text-xs">
+                <span class="flex items-center gap-1.5">
+                    <i class="fa-regular fa-calendar-check text-emerald-700"></i>
+                    <span>วันที่ ${day} ${CONFIG.THAI_MONTHS[currentMonth-1]}</span>
+                </span>
+                <span class="font-mono font-bold text-emerald-700 text-[11px] bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
+                    ${totalDayCost.toLocaleString('th-TH')} ฿
+                </span>
             </div>`;
-            
-            if (bRec) tooltipHTML += `<div class="mb-1 text-amber-300"><b>🌅 เช้า:</b> ${escapeHtml(bRec.menu_name || '-')} <span class="text-white">(${Number(bRec.total_cost||0).toLocaleString('th-TH')}฿)</span></div>`;
-            if (lRec) tooltipHTML += `<div class="mb-1 text-emerald-300"><b>☀️ เที่ยง:</b> ${escapeHtml(lRec.menu_name || '-')} <span class="text-white">(${Number(lRec.total_cost||0).toLocaleString('th-TH')}฿)</span></div>`;
-            if (dRec) tooltipHTML += `<div class="text-indigo-300"><b>🌙 เย็น:</b> ${escapeHtml(dRec.menu_name || '-')} <span class="text-white">(${Number(dRec.total_cost||0).toLocaleString('th-TH')}฿)</span></div>`;
+
+            if (bRec) {
+                tooltipHTML += `
+                <div class="mb-1.5 p-1.5 rounded-lg bg-amber-50/90 border border-amber-200/80 text-amber-900">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <b>🌅 เช้า</b>
+                        <span class="font-mono font-bold text-amber-800">${Number(bRec.total_cost || 0).toLocaleString('th-TH')} ฿</span>
+                    </div>
+                    <div class="text-[11px] font-medium truncate text-amber-950 mt-0.5">${escapeHtml(bRec.menu_name || 'ไม่มีชื่อเมนู')}</div>
+                </div>`;
+            }
+            if (lRec) {
+                tooltipHTML += `
+                <div class="mb-1.5 p-1.5 rounded-lg bg-rose-50/90 border border-rose-200/80 text-rose-900">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <b>☀️ เที่ยง</b>
+                        <span class="font-mono font-bold text-rose-800">${Number(lRec.total_cost || 0).toLocaleString('th-TH')} ฿</span>
+                    </div>
+                    <div class="text-[11px] font-medium truncate text-rose-950 mt-0.5">${escapeHtml(lRec.menu_name || 'ไม่มีชื่อเมนู')}</div>
+                </div>`;
+            }
+            if (dRec) {
+                tooltipHTML += `
+                <div class="p-1.5 rounded-lg bg-indigo-50/90 border border-indigo-200/80 text-indigo-900">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <b>🌙 เย็น</b>
+                        <span class="font-mono font-bold text-indigo-800">${Number(dRec.total_cost || 0).toLocaleString('th-TH')} ฿</span>
+                    </div>
+                    <div class="text-[11px] font-medium truncate text-indigo-950 mt-0.5">${escapeHtml(dRec.menu_name || 'ไม่มีชื่อเมนู')}</div>
+                </div>`;
+            }
 
             tooltip.innerHTML = tooltipHTML;
             dayCell.appendChild(tooltip);
